@@ -56,9 +56,7 @@ import { Auth0ProviderWithNavigate } from "./components/Auth0/Auth0Provider";
 import { PermissionsProvider } from "./components/Auth0/PermissionsContext";
 import { PERMISSIONS } from "./utils/permissions";
 import { ActivityTrackingProvider } from "./components/ActivityTracking/ActivityTrackingProvider";
-// Import our API interceptor hook
 import { useApiAuthInterceptor } from "./utils/apiInterceptor";
-// Import AdminProperties page
 import AdminProperties from "./pages/AdminProperties/AdminProperties";
 
 import "react-toastify/dist/ReactToastify.css";

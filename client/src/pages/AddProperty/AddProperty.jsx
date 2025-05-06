@@ -240,13 +240,13 @@ export default function AddProperty() {
       const multipartForm = new FormData();
       for (let key in formData) {
         if (key === "imageUrls" || key === "videoUrls") continue; // skip imageUrls and videoUrls here
-        
+
         let val = formData[key];
-        
+
         if (numericFields.includes(key) && typeof val === "string") {
           val = val.replace(/,/g, "");
         }
-        
+
         // Special handling for landType array
         if (key === "landType" && Array.isArray(val)) {
           multipartForm.append(key, JSON.stringify(val));
@@ -260,10 +260,10 @@ export default function AddProperty() {
         multipartForm.append("featuredPosition", formData.featuredPosition);
       }
 
-      // Add CMA fields
-      multipartForm.append("hasCma", formData.hasCma);
-      multipartForm.append("cmaData", formData.cmaData || "");
-      
+      // Convert boolean or handle arrays
+      const hasCmaValue = Array.isArray(hasCma) ? hasCma[0] === "true" || hasCma[0] === true : hasCma === "true" || hasCma === true;
+      const cmaDataValue = Array.isArray(cmaData) ? cmaData[0] : cmaData || null;
+
       // Append CMA file if available
       if (cmaFile) {
         multipartForm.append("cmaFile", cmaFile);
@@ -295,7 +295,7 @@ export default function AddProperty() {
 
       // Append newly uploaded files
       uploadedImages.forEach((file) => multipartForm.append("images", file));
-      
+
       // Append newly uploaded videos
       uploadedVideos.forEach((file) => multipartForm.append("videos", file));
 
@@ -395,7 +395,7 @@ export default function AddProperty() {
       component: (
         <ComparativeMarketAnalysis 
           formData={formData} 
-          handleChange={handleChange} 
+          handleChange={handleChange}
           handleCmaFileUpload={handleCmaFileUpload}
         />
       ),
@@ -433,8 +433,8 @@ export default function AddProperty() {
                     (isCompleted
                       ? "border-green-500 bg-green-500 text-white"
                       : isActive
-                      ? "border-blue-500 bg-blue-100 text-blue-700"
-                      : "border-gray-300 bg-white text-gray-500")
+                        ? "border-blue-500 bg-blue-100 text-blue-700"
+                        : "border-gray-300 bg-white text-gray-500")
                   }
                 >
                   {isCompleted ? <Check className="w-4 h-4" /> : index + 1}

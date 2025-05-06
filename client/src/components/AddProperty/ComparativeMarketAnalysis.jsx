@@ -35,12 +35,11 @@ export default function ComparativeMarketAnalysis({
 
   // Handle CMA data (rich text)
   const handleCmaDataChange = (value) => {
-    handleChange({
-      target: {
-        name: "cmaData",
-        value: value
-      }
-    });
+    // Directly update the formData state instead of using handleChange
+    setFormData(prev => ({
+      ...prev,
+      cmaData: value
+    }));
   };
 
   // Handle PDF file selection

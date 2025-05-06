@@ -100,7 +100,7 @@ model Residency {
   legalDescription   String?
   mobileHomeFriendly String?
 
-  //4. Location & Identification
+  // 4. Location & Identification
   streetAddress String
   city          String
   county        String
@@ -113,11 +113,11 @@ model Residency {
   landId        String
   landIdLink    String?
 
-  //5. Property Size & Dimensions
+  // 5. Property Size & Dimensions
   sqft      Int?
   acre      Float
 
-//6. Pricing
+// 6. Pricing
   askingPrice   Float
   minPrice      Float
   disPrice      Float
@@ -126,7 +126,7 @@ model Residency {
   hoaPaymentTerms String?
   tax           Float?
 
-//7. Financing & Pricing Calculations
+// 7. Financing & Pricing Calculations
   financing           String
   serviceFee          Float?
   term                Int?
@@ -153,12 +153,12 @@ model Residency {
   roadCondition String?
   floodplain    String?
 
-  //9. CMA fields
+  // 9. CMA fields
   hasCma         Boolean  @default(false)
   cmaData        String?
   cmaFilePath    String?
 
-  //10. Media & Tags
+  // 10. Media & Tags
   imageUrls Json?
   videoUrls Json?
   ltag      String?
