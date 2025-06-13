@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileUp } from "lucide-react";
+import { FileUp, AlertCircle } from "lucide-react";
 import { toast } from "react-toastify";
 
 // Define the available areas
@@ -95,34 +95,58 @@ export default function CreateListForm({
     onOpenChange(open);
   };
 
-  // Handle form submission
-// In handleSubmit function:
-const handleSubmit = async () => {
-  if (!formData.name.trim()) {
-    toast.error("List name is required");
-    return;
-  }
+  // Validation function
+  const validateForm = () => {
+    const errors = [];
 
-  try {
-    // If importing buyers, don't include criteria
-    const listData = importedBuyers && importedBuyers.length > 0
-      ? {
-          name: formData.name,
-          description: formData.description,
-          criteria: {}, // Empty criteria for imported lists
-          buyerIds: importedBuyers.map(b => b.id)
-        }
-      : {
-          ...formData,
-          buyerIds: []
-        };
+    // Check list name
+    if (!formData.name.trim()) {
+      errors.push("List name is required");
+    }
+
+    // Check areas - mandatory for both regular and imported lists
+    if (formData.criteria.areas.length === 0) {
+      errors.push("At least one area must be selected");
+    }
+
+    // Check buyer types - mandatory for both regular and imported lists
+    if (formData.criteria.buyerTypes.length === 0) {
+      errors.push("At least one buyer type must be selected");
+    }
+
+    return errors;
+  };
+
+  // Handle form submission
+  const handleSubmit = async () => {
+    // Validate form
+    const validationErrors = validateForm();
     
-    await onCreateList(listData);
-    handleOpenChange(false);
-  } catch (error) {
-    console.error("Create list error:", error);
-  }
-};
+    if (validationErrors.length > 0) {
+      validationErrors.forEach(error => toast.error(error));
+      return;
+    }
+
+    try {
+      // If importing buyers, include them in the list data
+      const listData = importedBuyers && importedBuyers.length > 0
+        ? {
+            name: formData.name,
+            description: formData.description,
+            criteria: formData.criteria, // Include criteria even when importing
+            buyerIds: importedBuyers.map(b => b.id)
+          }
+        : {
+            ...formData,
+            buyerIds: []
+          };
+      
+      await onCreateList(listData);
+      handleOpenChange(false);
+    } catch (error) {
+      console.error("Create list error:", error);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -150,7 +174,9 @@ const handleSubmit = async () => {
           <TabsContent value="details" className="py-4">
             <div className="grid gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">List Name</Label>
+                <Label htmlFor="name">
+                  List Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="name"
                   name="name"
@@ -173,7 +199,9 @@ const handleSubmit = async () => {
               </div>
               
               <div className="space-y-2">
-                <Label>Area Criteria</Label>
+                <Label>
+                  Area Criteria <span className="text-red-500">*</span>
+                </Label>
                 <div className="flex flex-wrap gap-2">
                   {AREAS.map(area => (
                     <Badge
@@ -195,13 +223,22 @@ const handleSubmit = async () => {
                     </Badge>
                   ))}
                 </div>
-                {formData.criteria.areas.length === 0 && (
-                  <p className="text-sm text-gray-500">No areas selected (will include all areas)</p>
+                {formData.criteria.areas.length === 0 ? (
+                  <div className="flex items-center gap-2 text-red-600">
+                    <AlertCircle className="h-4 w-4" />
+                    <p className="text-sm">Please select at least one area</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-green-600">
+                    {formData.criteria.areas.length} area{formData.criteria.areas.length !== 1 ? 's' : ''} selected
+                  </p>
                 )}
               </div>
               
               <div className="space-y-2">
-                <Label>Buyer Type Criteria</Label>
+                <Label>
+                  Buyer Type Criteria <span className="text-red-500">*</span>
+                </Label>
                 <div className="flex flex-wrap gap-2">
                   {BUYER_TYPES.map(type => (
                     <Badge
@@ -223,8 +260,15 @@ const handleSubmit = async () => {
                     </Badge>
                   ))}
                 </div>
-                {formData.criteria.buyerTypes.length === 0 && (
-                  <p className="text-sm text-gray-500">No types selected (will include all buyer types)</p>
+                {formData.criteria.buyerTypes.length === 0 ? (
+                  <div className="flex items-center gap-2 text-red-600">
+                    <AlertCircle className="h-4 w-4" />
+                    <p className="text-sm">Please select at least one buyer type</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-green-600">
+                    {formData.criteria.buyerTypes.length} type{formData.criteria.buyerTypes.length !== 1 ? 's' : ''} selected
+                  </p>
                 )}
               </div>
               
@@ -236,6 +280,20 @@ const handleSubmit = async () => {
                   className="h-4 w-4 rounded border-gray-300 text-[#324c48] focus:ring-[#324c48]"
                 />
                 <Label htmlFor="isVip">VIP Buyers Only</Label>
+              </div>
+
+              {/* Requirements notice */}
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle className="h-4 w-4 text-blue-600" />
+                  <p className="text-sm font-medium text-blue-800">Requirements</p>
+                </div>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• List name is required</li>
+                  <li>• At least one area must be selected</li>
+                  <li>• At least one buyer type must be selected</li>
+                  <li>• These criteria will be used to automatically include matching buyers</li>
+                </ul>
               </div>
             </div>
           </TabsContent>
@@ -262,6 +320,18 @@ const handleSubmit = async () => {
                   </p>
                 </div>
               )}
+
+              {/* Import requirements notice */}
+              <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle className="h-4 w-4 text-orange-600" />
+                  <p className="text-sm font-medium text-orange-800">Import Requirements</p>
+                </div>
+                <p className="text-sm text-orange-700">
+                  Even when importing buyers from CSV, you must still select at least one area and one buyer type. 
+                  These criteria will be used to automatically include additional matching buyers beyond your imported list.
+                </p>
+              </div>
               
               <div className="p-3 bg-[#f0f5f4] rounded-lg">
                 <p className="text-sm font-medium text-[#324c48] mb-2">
@@ -296,7 +366,15 @@ const handleSubmit = async () => {
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} className="bg-[#324c48] text-white">
+          <Button 
+            onClick={handleSubmit} 
+            className="bg-[#324c48] text-white"
+            disabled={
+              !formData.name.trim() || 
+              formData.criteria.areas.length === 0 || 
+              formData.criteria.buyerTypes.length === 0
+            }
+          >
             Create List
             {importedBuyers && importedBuyers.length > 0 && 
               ` with ${importedBuyers.length} buyers`
